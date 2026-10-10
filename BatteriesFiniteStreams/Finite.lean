@@ -45,6 +45,9 @@ Several examples of this pattern can be found below. Note that `Stream.Finite s`
 `Stream.WithNextRelation` instance, so functions should take that instance rather than a plain
 `Stream` instance: a plain `Stream` instance only provides the default next relation, for which
 there are no `Stream.Finite` instances.
+
+The total operations on finite streams live in the `Std.Stream.Finite` namespace: the folds
+`foldl`, `foldr`, `foldlM` and `foldrM`, as well as `length`, `toList`, `toListRev` and `toArray`.
 -/
 
 namespace Std.Stream
@@ -193,8 +196,6 @@ public theorem ofRestrictedNext.{u, v} [WithNextRelation.{u, v} σ α] {p : σ �
     { s : σ // Acc Next s } :=
   ⟨s, Finite.acc⟩
 
-end Finite
-
 /-- Folds a monadic function over a finite stream from left to right. -/
 @[specialize]
 public def foldlM [Monad m] [WithNextRelation σ α] (s : σ) [Stream.Finite s]
@@ -204,7 +205,7 @@ public def foldlM [Monad m] [WithNextRelation σ α] (s : σ) [Stream.Finite s]
   | some (x, t) =>
     have : Stream.Finite t := .ofSome h
     f init x >>= foldlM t f
-termination_by Finite.wrap s
+termination_by wrap s
 
 public theorem foldlM_none [Monad m] [WithNextRelation σ α] {s : σ} [Stream.Finite s]
     {f : β → α → m β} (h : next? s = none) : foldlM s f init = pure init := by
@@ -226,7 +227,7 @@ public def foldrM [Monad m] [WithNextRelation σ α] (s : σ) [Stream.Finite s]
   | some (x, t) =>
     have : Stream.Finite t := .ofSome h
     foldrM t f init >>= f x
-termination_by Finite.wrap s
+termination_by wrap s
 
 public theorem foldrM_none [Monad m] [WithNextRelation σ α] {s : σ} [Stream.Finite s]
     {f : α → β → m β} (h : next? s = none) : foldrM s f init = pure init := by
@@ -248,7 +249,7 @@ public def foldl [WithNextRelation σ α] (s : σ) [Stream.Finite s] (f : β →
   | some (x, t) =>
     have : Stream.Finite t := .ofSome h
     foldl t f (f init x)
-termination_by Finite.wrap s
+termination_by wrap s
 
 public theorem foldl_none [WithNextRelation σ α] {s : σ} [Stream.Finite s] {f : β → α → β}
     (h : next? s = none) : foldl s f init = init := by
@@ -269,7 +270,7 @@ public def foldr [WithNextRelation σ α] (s : σ) [Stream.Finite s] (f : α →
   | some (x, t) =>
     have : Stream.Finite t := .ofSome h
     f x <| foldr t f init
-termination_by Finite.wrap s
+termination_by wrap s
 
 public theorem foldr_none [WithNextRelation σ α] {s : σ} [Stream.Finite s] {f : α → β → β}
     (h : next? s = none) : foldr s f init = init := by
@@ -297,7 +298,7 @@ private theorem foldl_succ [WithNextRelation σ α] {s : σ} [Stream.Finite s] :
     have : Stream.Finite t := .ofSome h
     rw [foldl_some h, foldl_some h, foldl_succ (n := 0 + 1), foldl_succ (s := t)]
     omega
-termination_by Finite.wrap s
+termination_by wrap s
 
 public theorem length_some [WithNextRelation σ α] {s t : σ} [Stream.Finite s] [Stream.Finite t]
     (h : next? s = some (x, t)) : length s = length t + 1 := by
@@ -319,7 +320,7 @@ private theorem foldl_cons [WithNextRelation σ α] {s : σ} [Stream.Finite s] :
     have : Stream.Finite t := .ofSome h
     rw [foldl_some h, foldl_some h, foldl_cons (l := [x]), foldl_cons (s := t)]
     simp
-termination_by Finite.wrap s
+termination_by wrap s
 
 public theorem toListRev_some [WithNextRelation σ α] {s t : σ} [Stream.Finite s]
     [Stream.Finite t] (h : next? s = some (x, t)) : toListRev s = toListRev t ++ [x] := by
@@ -354,7 +355,7 @@ private theorem foldl_push [WithNextRelation σ α] {s : σ} [Stream.Finite s] :
     have : Stream.Finite t := .ofSome h
     rw [foldl_some h, foldl_some h, foldl_push (l := #[].push x), foldl_push (s := t)]
     simp
-termination_by Finite.wrap s
+termination_by wrap s
 
 public theorem toArray_some [WithNextRelation σ α] {s t : σ} [Stream.Finite s] [Stream.Finite t]
     (h : next? s = some (x, t)) : toArray s = #[x] ++ toArray t := by
@@ -367,7 +368,7 @@ public theorem toArray_some [WithNextRelation σ α] {s t : σ} [Stream.Finite s
   | some (x, t) =>
     have : Stream.Finite t := .ofSome h
     rw [toList_some h, toArray_some h, List.toArray_cons, toArray_toList_eq_toArray]
-termination_by Finite.wrap s
+termination_by wrap s
 
 @[simp] public theorem toList_eq_self (l : List α) : toList l = l := by
   induction l with
@@ -381,5 +382,7 @@ termination_by Finite.wrap s
   induction l with
   | nil => rw [length_none rfl, List.length_nil]
   | cons x l ih => rw [length_some rfl, ih, List.length_cons]
+
+end Finite
 
 end Std.Stream
