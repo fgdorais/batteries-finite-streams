@@ -370,15 +370,15 @@ public theorem toArray_some [WithNextRelation σ α] {s t : σ} [Stream.Finite s
     rw [toList_some h, toArray_some h, List.toArray_cons, toArray_toList]
 termination_by wrap s
 
-@[simp] public theorem toList_eq_self (l : List α) : toList l = l := by
+@[simp] public theorem toList_list (l : List α) : toList l = l := by
   induction l with
   | nil => rw [toList_none rfl]
   | cons x l ih => rw [toList_some rfl, ih]
 
-@[simp] public theorem toArray_eq_toArray (l : List α) : toArray l = l.toArray := by
-  rw [← toArray_toList, toList_eq_self]
+@[simp] public theorem toArray_list (l : List α) : toArray l = l.toArray := by
+  rw [← toArray_toList, toList_list]
 
-@[simp] public theorem length_eq_length (l : List α) : length l = l.length := by
+@[simp] public theorem length_list (l : List α) : length l = l.length := by
   induction l with
   | nil => rw [length_none rfl, List.length_nil]
   | cons x l ih => rw [length_some rfl, ih, List.length_cons]
