@@ -1,0 +1,10 @@
+name = "batteries-cell-test"
+defaultTargets = ["BatteriesCell"]
+
+[[lean_lib]]
+name = "BatteriesCell"
+
+[[require]]
+name = "batteries"
+git = "https://github.com/leanprover-community/batteries"
+rev = "main"
