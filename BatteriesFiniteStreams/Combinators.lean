@@ -94,6 +94,9 @@ public theorem next?_takeUpTo_eq_some_of_next?_eq_some_of_ne_zero [Stream σ α]
 ```
 toList (map (· ^ 2) [1,2,3,4,5]) = [1,4,9,16,25]
 ```
+
+The function `f` is a parameter of the type `Map f σ` rather than a field, so the stream state does
+not store a closure.
 -/
 public structure Map (f : α → β) (σ) [Stream σ α] where
   /-- Underlying stream. -/
@@ -155,19 +158,19 @@ public instance [Stream σ α] [Stream τ α] : Stream (Union σ τ α) α where
     | none => none
     | some (x, t) => some (x, .inr t)
 
-public theorem next?_inl_eq_none_of_next?_eq_none [Stream σ α] [Stream τ α] {s : σ}
+public theorem Union.next?_inl_eq_none_of_next?_eq_none [Stream σ α] [Stream τ α] {s : σ}
     (h : next? s = none) : next? (.inl s : Union σ τ α) = none := by
   simp [next?, h]
 
-public theorem next?_inl_eq_some_of_next?_eq_some [Stream σ α] [Stream τ α] {s : σ}
+public theorem Union.next?_inl_eq_some_of_next?_eq_some [Stream σ α] [Stream τ α] {s : σ}
     (h : next? s = some (x, s')) : next? (.inl s : Union σ τ α) = some (x, .inl s') := by
   simp [next?, h]
 
-public theorem next?_inr_eq_none_of_next?_eq_none [Stream σ α] [Stream τ α] {t : τ}
+public theorem Union.next?_inr_eq_none_of_next?_eq_none [Stream σ α] [Stream τ α] {t : τ}
     (h : next? t = none) : next? (.inr t : Union σ τ α) = none := by
   simp [next?, h]
 
-public theorem next?_inr_eq_some_of_next?_eq_some [Stream σ α] [Stream τ α] {t : τ}
+public theorem Union.next?_inr_eq_some_of_next?_eq_some [Stream σ α] [Stream τ α] {t : τ}
     (h : next? t = some (x, t')) : next? (.inr t : Union σ τ α) = some (x, .inr t') := by
   simp [next?, h]
 

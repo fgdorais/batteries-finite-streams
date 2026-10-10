@@ -21,6 +21,9 @@ iterator. It also connects the finiteness properties of both interfaces:
 - iterators of streams from a well-founded stream type are finite;
 - finite pure iterators form a well-founded stream type.
 
+Stream iterators also support `IteratorAccess`, so `Std.Stream.iter s` is itself a stream, and a
+well-founded one when `σ` is a well-founded stream type.
+
 This is also useful for existing stream-based libraries that want to gradually transition to
 iterators.
 -/
@@ -66,6 +69,25 @@ public instance [Stream σ α] : Productive (StreamIterator σ α) Id where
 @[always_inline, inline]
 public instance [Stream σ α] [Monad n] : IteratorLoop (StreamIterator σ α) Id n :=
   .defaultImplementation
+
+/-- Returns the step in which a stream iterator emits its `n`-th value, or `.done`. -/
+public def _root_.Std.Iterators.Types.StreamIterator.nextAtIdx? [Stream σ α]
+    (it : IterM (α := StreamIterator σ α) Id α) :
+    (n : Nat) → PlausibleIterStep (it.IsPlausibleNthOutputStep n)
+  | 0 =>
+    match h : next? it.internalState.stream with
+    | none => ⟨.done, .done h⟩
+    | some (x, s) =>
+      ⟨.yield ⟨{ stream := s }⟩ x, .zero_yield (it' := ⟨(⟨s⟩ : StreamIterator σ α)⟩) h⟩
+  | n + 1 =>
+    match h : next? it.internalState.stream with
+    | none => ⟨.done, .done h⟩
+    | some (_, s) =>
+      let ⟨step, hs⟩ := nextAtIdx? ⟨{ stream := s }⟩ n
+      ⟨step, .yield (it' := ⟨(⟨s⟩ : StreamIterator σ α)⟩) h hs⟩
+
+public instance [Stream σ α] : IteratorAccess (StreamIterator σ α) Id where
+  nextAtIdx? it n := pure (StreamIterator.nextAtIdx? it n)
 
 public instance (σ α) [wf : Stream.WellFounded σ α] :
     Iterators.Finite (StreamIterator σ α) Id where

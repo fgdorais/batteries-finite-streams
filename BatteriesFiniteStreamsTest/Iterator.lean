@@ -13,3 +13,9 @@ def sumFor (l : List Nat) : Nat := Id.run do
   return s
 
 #guard sumFor [1, 2, 3] == 6
+
+-- Round trip
+#guard Std.Stream.toList (Std.Stream.iter [1, 2, 3]) == [1, 2, 3]
+#guard Std.Stream.toList (Std.Stream.iter (Std.Stream.iter "abc".toRawSubstring)) == ['a', 'b', 'c']
+#guard (Std.Stream.iter [1, 2, 3]).atIdx? 1 == some 2
+#guard (Std.Stream.iter [1, 2, 3]).atIdx? 3 == none
