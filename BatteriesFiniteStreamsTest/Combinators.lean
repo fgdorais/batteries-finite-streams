@@ -1,4 +1,4 @@
-import BatteriesStream.Combinators
+import BatteriesFiniteStreams.Combinators
 
 /- Examples from docstrings -/
 

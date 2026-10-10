@@ -5,7 +5,7 @@ Authors: François G. Dorais
 -/
 module
 
-public import BatteriesStream.Finite
+public import BatteriesFiniteStreams.Finite
 
 /-! # Stream Combinators -/
 

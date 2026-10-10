@@ -1,11 +1,11 @@
-name = "batteries-stream"
-defaultTargets = ["BatteriesStream", "BatteriesStreamTest"]
+name = "batteries-finite-streams"
+defaultTargets = ["BatteriesFiniteStreams", "BatteriesFiniteStreamsTest"]
 
 [[lean_lib]]
-name = "BatteriesStream"
+name = "BatteriesFiniteStreams"
 
 [[lean_lib]]
-name = "BatteriesStreamTest"
+name = "BatteriesFiniteStreamsTest"
 
 [[require]]
 name = "batteries"

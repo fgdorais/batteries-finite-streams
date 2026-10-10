@@ -1,0 +1,3 @@
+import BatteriesFiniteStreamsTest.Combinators
+import BatteriesFiniteStreamsTest.Finite
+import BatteriesFiniteStreamsTest.Iterator

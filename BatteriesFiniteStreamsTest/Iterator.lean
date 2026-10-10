@@ -1,4 +1,4 @@
-import BatteriesStream.Iterator
+import BatteriesFiniteStreams.Iterator
 
 #guard (Std.Stream.iter [1, 2, 3]).toList == [1, 2, 3]
 #guard ((Std.Stream.iter [1, 2, 3]).map (· * 2)).toArray == #[2, 4, 6]
