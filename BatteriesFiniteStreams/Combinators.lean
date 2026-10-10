@@ -16,7 +16,7 @@ namespace Std.Stream
 /-- Constant stream with value `x`.
 
 ```
-next? (const 'a') = ('a', const 'a')
+next? (const 'a') = some ('a', const 'a')
 ```
 -/
 public structure Constant {α : Type _} (x : α)
@@ -31,7 +31,7 @@ public instance (x : α) : Stream (Constant x) α where
 @[inherit_doc Constant]
 public abbrev const (x : α) : Constant x := ⟨⟩
 
-@[simp] public theorem next?_const_eq : next? (const x) = some (x, const x) := rfl
+@[simp] public theorem next?_const : next? (const x) = some (x, const x) := rfl
 
 /-! ## TakeUpTo -/
 
