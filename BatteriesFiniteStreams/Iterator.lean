@@ -14,18 +14,18 @@ features to support monadic effects, among other things. This added functionalit
 iterator interface more complex. By comparison, the stream interface is quite simple and easy to
 use.
 
-The standard library already provides `Std.Stream` instances for productive pure iterators. This
-module adds the reverse translation: `Std.Stream.iter` converts a stream into a productive pure
+The standard library already provides `Std.Stream` instances for productive pure iterators that
+support random access (`IteratorAccess`). This module adds the reverse translation: `Std.Stream.iter` converts a stream into a productive pure
 iterator. It also connects the finiteness properties of both interfaces:
 
 - iterators of streams from a well-founded stream type are finite;
 - finite pure iterators form a well-founded stream type.
 
-Stream iterators also support `IteratorAccess`, so `Std.Stream.iter s` is itself a stream, and a
-well-founded one when `σ` is a well-founded stream type.
-
 This is also useful for existing stream-based libraries that want to gradually transition to
 iterators.
+
+Stream iterators also support `IteratorAccess`, so `Std.Stream.iter s` is itself a stream, and a
+well-founded one when `σ` is a well-founded stream type.
 -/
 
 namespace Std.Iterators.Types

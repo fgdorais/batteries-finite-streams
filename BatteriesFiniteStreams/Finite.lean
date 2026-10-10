@@ -13,8 +13,8 @@ import all Std.Data.ByteSlice -- for unfolding `ByteSlice.slice` and `ByteSlice.
 This module defines two main classes:
 
 - `Std.Stream.Finite` provides a proof that a specific stream is finite.
-- `Std.Stream.WellFounded` extends the `Std.Stream` class and provides an instance of
-  `Std.Stream.Finite` for every stream of the given type.
+- `Std.Stream.WellFounded` asserts that the next relation of a stream type is well-founded, which
+  provides an instance of `Std.Stream.Finite` for every stream of the given type.
 
 The importance of these classes is that iterating along a finite stream is guaranteed to terminate.
 Therefore, it is possible to prove facts about such iterations.
@@ -168,12 +168,12 @@ public instance [Stream.WellFounded σ α] (s : σ) : Stream.Finite s where
 
 namespace Finite
 
-/-- Successor of a finite stream is finite. -/
+/-- A stream related to a finite stream by the next relation is finite. -/
 public theorem ofNext [WithNextRelation σ α] {s t : σ} [Stream.Finite s] (h : Next t s) :
     Stream.Finite t where
   acc := match acc (s := s) with | ⟨_, a⟩ => a _ h
 
-/-- Successor of a finite stream is finite. -/
+/-- The stream following a finite stream is finite. -/
 public theorem ofSome [WithNextRelation σ α] {s t : σ} [Stream.Finite s]
     (h : next? s = some (x, t)) : Stream.Finite t := .ofNext <| next_of_next?_eq_some h
 
@@ -361,13 +361,13 @@ public theorem toArray_some [WithNextRelation σ α] {s t : σ} [Stream.Finite s
     (h : next? s = some (x, t)) : toArray s = #[x] ++ toArray t := by
   rw [toArray, foldl_some h, foldl_push]; rfl
 
-@[simp] public theorem toArray_toList_eq_toArray [WithNextRelation σ α] {s : σ}
+@[simp] public theorem toArray_toList [WithNextRelation σ α] {s : σ}
     [Stream.Finite s] : (toList s).toArray = toArray s := by
   match h : next? s with
   | none => simp [toList_none h, toArray_none h]
   | some (x, t) =>
     have : Stream.Finite t := .ofSome h
-    rw [toList_some h, toArray_some h, List.toArray_cons, toArray_toList_eq_toArray]
+    rw [toList_some h, toArray_some h, List.toArray_cons, toArray_toList]
 termination_by wrap s
 
 @[simp] public theorem toList_eq_self (l : List α) : toList l = l := by
@@ -376,7 +376,7 @@ termination_by wrap s
   | cons x l ih => rw [toList_some rfl, ih]
 
 @[simp] public theorem toArray_eq_toArray (l : List α) : toArray l = l.toArray := by
-  rw [← toArray_toList_eq_toArray, toList_eq_self]
+  rw [← toArray_toList, toList_eq_self]
 
 @[simp] public theorem length_eq_length (l : List α) : length l = l.length := by
   induction l with
