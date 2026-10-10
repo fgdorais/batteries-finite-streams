@@ -54,3 +54,33 @@ Hint: Type class instance resolution failures can be inspected with the `set_opt
 #guard Std.Stream.toListRev [1, 2, 3] == [3, 2, 1]
 
 example : Std.Stream.toList [1, 2, 3] = [1, 2, 3] := by simp
+
+example : Std.Stream.length [1, 2, 3] = 3 := by simp
+example : Std.Stream.toArray [1, 2, 3] = #[1, 2, 3] := by simp
+
+/- Folds -/
+
+#guard Std.Stream.foldlM (m := Option) [1, 2, 3] (fun b a => some (b + a)) 0 == some 6
+#guard Std.Stream.foldrM (m := Option) [1, 2, 3] (fun a b => some (a :: b)) [] == some [1, 2, 3]
+#guard Std.Stream.foldl [1, 2, 3] (fun b a => 10 * b + a) 0 == 123
+#guard Std.Stream.foldr [1, 2, 3] (fun a b => 10 * b + a) 0 == 321
+
+/- Documented recursion patterns -/
+
+def sumWF [Std.Stream.WellFounded σ Nat] (s : σ) : Nat :=
+  match _hint : Std.Stream.next? s with
+  | none => 0
+  | some (x, t) => x + sumWF t
+termination_by s
+
+def sumFinite [Std.Stream.WithNextRelation σ Nat] (s : σ) [Std.Stream.Finite s] : Nat :=
+  match hint : Std.Stream.next? s with
+  | none => 0
+  | some (x, t) =>
+    have : Std.Stream.Finite t := .ofSome hint
+    x + sumFinite t
+termination_by Std.Stream.Finite.wrap s
+
+#guard sumWF [1, 2, 3] == 6
+#guard sumFinite [1, 2, 3] == 6
+#guard sumFinite (Test.mk true 4) == 6

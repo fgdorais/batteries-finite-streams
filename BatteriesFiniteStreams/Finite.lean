@@ -33,7 +33,7 @@ termination checker.
 
 The `Stream.Finite` class is more general but is slightly trickier to use:
 ```
-def foo [Stream σ α] (s : σ) [Stream.Finite s] : β :=
+def foo [Stream.WithNextRelation σ α] (s : σ) [Stream.Finite s] : β :=
   match hint : Stream.next? s with
   | none => _
   | some (x, t) =>
@@ -41,7 +41,10 @@ def foo [Stream σ α] (s : σ) [Stream.Finite s] : β :=
     _
 termination_by Stream.Finite.wrap s
 ```
-Several examples of this pattern can be found below.
+Several examples of this pattern can be found below. Note that `Stream.Finite s` depends on the
+`Stream.WithNextRelation` instance, so functions should take that instance rather than a plain
+`Stream` instance: a plain `Stream` instance only provides the default next relation, for which
+there are no `Stream.Finite` instances.
 -/
 
 namespace Std.Stream
@@ -76,15 +79,17 @@ public protected class WellFounded.{u, v} (σ : Type u) (α : outParam <| Type v
 /-- Defines a well-founded stream type instance from a well-founded relation. -/
 @[expose, instance_reducible] public def WellFounded.ofRelation.{u, v} [Stream.{u, v} σ α]
     [inst : WellFoundedRelation σ]
-    (h : {s t : σ} → {x : α} → next? s = (x, t) → WellFoundedRelation.rel t s) :
+    (h : {s t : σ} → {x : α} → next? s = some (x, t) → WellFoundedRelation.rel t s) :
     Stream.WellFounded σ α := { inst with rel_of_next?_eq_some := h }
 
 /-- Defines a well-founded stream type instance from a measure. -/
 @[expose, instance_reducible] public def WellFounded.ofMeasure.{u, v} [Stream.{u, v} σ α]
     (f : σ → Nat)
-    (h : {s t : σ} → {x : α} → next? s = (x, t) → f t < f s) :
+    (h : {s t : σ} → {x : α} → next? s = some (x, t) → f t < f s) :
     Stream.WellFounded σ α := { measure f with rel_of_next?_eq_some := h }
 
+/- Prove termination goals `Next t s` for `termination_by s` on a well-founded stream type, given a
+hypothesis `next? s = some (x, t)` in context. -/
 macro_rules
 | `(tactic| decreasing_trivial) => `(tactic| apply Std.Stream.next_of_next?_eq_some; assumption)
 
@@ -368,5 +373,13 @@ termination_by Finite.wrap s
   induction l with
   | nil => rw [toList_none rfl]
   | cons x l ih => rw [toList_some rfl, ih]
+
+@[simp] public theorem toArray_eq_toArray (l : List α) : toArray l = l.toArray := by
+  rw [← toArray_toList_eq_toArray, toList_eq_self]
+
+@[simp] public theorem length_eq_length (l : List α) : length l = l.length := by
+  induction l with
+  | nil => rw [length_none rfl, List.length_nil]
+  | cons x l ih => rw [length_some rfl, ih, List.length_cons]
 
 end Std.Stream
