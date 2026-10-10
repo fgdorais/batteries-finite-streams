@@ -31,3 +31,12 @@ example [Std.Stream.WellFounded σ α] (s : σ) :
 example [Std.Stream σ α] {s t : σ} (h : Std.Stream.next? s = some (x, t)) :
     (Std.Stream.iter s).step.val = .yield (Std.Stream.iter t) x := by
   simp [Std.Stream.step_iter_of_next?_eq_some h]
+
+-- Finiteness
+example : Acc Std.Iter.IsPlausibleSuccessorOf (Std.Stream.iter [1, 2, 3]) :=
+  Std.Stream.Finite.acc_iter _
+
+example [Std.Stream σ α]
+    (h : WellFounded fun t s : σ => ∃ x, Std.Stream.next? s = some (x, t)) :
+    Std.Iterators.Finite (Std.Iterators.Types.StreamIterator σ α) Id :=
+  Std.Stream.finite_streamIterator_iff.2 h
