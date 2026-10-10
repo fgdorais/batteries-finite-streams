@@ -1,8 +1,11 @@
-name = "batteries-cell-test"
-defaultTargets = ["BatteriesCell"]
+name = "batteries-stream"
+defaultTargets = ["BatteriesStream", "BatteriesStreamTest"]
 
 [[lean_lib]]
-name = "BatteriesCell"
+name = "BatteriesStream"
+
+[[lean_lib]]
+name = "BatteriesStreamTest"
 
 [[require]]
 name = "batteries"
