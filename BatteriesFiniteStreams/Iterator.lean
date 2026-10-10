@@ -48,20 +48,53 @@ Returns a productive pure iterator for the given stream.
 * `Finite` instance: when `σ` is a well-founded stream type
 * `Productive` instance: always
 -/
-@[always_inline, inline]
+@[expose, always_inline, inline]
 public def iter [Stream σ α] (s : σ) : Iter (α := StreamIterator σ α) α :=
   ⟨{ stream := s }⟩
 
+/-- The plausible steps of a stream iterator: it yields exactly what `next?` returns. -/
+@[expose] public def _root_.Std.Iterators.Types.StreamIterator.IsPlausibleStep [Stream σ α]
+    (it : IterM (α := StreamIterator σ α) Id α) :
+    IterStep (IterM (α := StreamIterator σ α) Id α) α → Prop
+  | .yield it' out => next? it.internalState.stream = some (out, it'.internalState.stream)
+  | .skip _ => False
+  | .done => next? it.internalState.stream = none
+
+/-- The step of a stream iterator, given the result `o` of `next?`. -/
+@[always_inline, inline]
+public def _root_.Std.Iterators.Types.StreamIterator.stepOf [Stream σ α]
+    (it : IterM (α := StreamIterator σ α) Id α) :
+    (o : Option (α × σ)) → next? it.internalState.stream = o →
+      PlausibleIterStep (StreamIterator.IsPlausibleStep it)
+  | some (out, s), h => ⟨.yield ⟨{ stream := s }⟩ out, h⟩
+  | none, h => ⟨.done, h⟩
+
 @[always_inline, inline]
 public instance (σ α) [Stream σ α] : Iterator (StreamIterator σ α) Id α where
-  IsPlausibleStep it
-    | .yield it' out => next? it.internalState.stream = some (out, it'.internalState.stream)
-    | .skip _ => False
-    | .done => next? it.internalState.stream = none
-  step it := pure <| .deflate <|
-    match next? it.internalState.stream with
-    | some (out, s) => ⟨.yield ⟨{ stream := s }⟩ out, rfl⟩
-    | none => ⟨.done, rfl⟩
+  IsPlausibleStep := StreamIterator.IsPlausibleStep
+  step it := pure <| .deflate <| StreamIterator.stepOf it _ rfl
+
+public theorem step_iter_of_next?_eq_some [Stream σ α] {s t : σ}
+    (h : next? s = some (x, t)) : (iter s).step = ⟨.yield (iter t) x, h⟩ := by
+  have : ∀ o (ho : next? s = o), o = some (x, t) →
+      (StreamIterator.stepOf (iter s).toIterM o ho).val.mapIterator IterM.toIter =
+        .yield (iter t) x := by
+    rintro _ _ rfl; rfl
+  apply Subtype.ext
+  simp only [Iter.step, IterM.step, Iterator.step, Id.run_pure, Shrink.inflate_deflate,
+    IterM.Step.toPure]
+  exact this _ rfl h
+
+public theorem step_iter_of_next?_eq_none [Stream σ α] {s : σ}
+    (h : next? s = none) : (iter s).step = ⟨.done, h⟩ := by
+  have : ∀ o (ho : next? s = o), o = none →
+      (StreamIterator.stepOf (iter s).toIterM o ho).val.mapIterator IterM.toIter =
+        .done := by
+    rintro _ _ rfl; rfl
+  apply Subtype.ext
+  simp only [Iter.step, IterM.step, Iterator.step, Id.run_pure, Shrink.inflate_deflate,
+    IterM.Step.toPure]
+  exact this _ rfl h
 
 public instance [Stream σ α] : Productive (StreamIterator σ α) Id where
   wf := ⟨fun _ => ⟨_, fun _ h => nomatch h⟩⟩
@@ -120,5 +153,36 @@ public instance [Iterator α Id β] [Iterators.Finite α Id] [IteratorAccess α 
     · cases h; exact ⟨_, ‹_›⟩
     · next h' _ => exact absurd h' IterM.not_isPlausibleNthOutputStep_yield
     · cases h
+
+@[simp] public theorem toList_iter [Stream.WellFounded σ α] (s : σ) :
+    (iter s).toList = Finite.toList s := by
+  rw [Iter.toList_eq_match_step]
+  match h : next? s with
+  | none => simp [step_iter_of_next?_eq_none h, Finite.toList_none h]
+  | some (x, t) =>
+    simp only [step_iter_of_next?_eq_some h, toList_iter t, Finite.toList_some h]
+termination_by Finite.wrap s
+
+@[simp] public theorem toListRev_iter [Stream.WellFounded σ α] (s : σ) :
+    (iter s).toListRev = Finite.toListRev s := by
+  rw [Iter.toListRev_eq_match_step]
+  match h : next? s with
+  | none => simp [step_iter_of_next?_eq_none h, Finite.toListRev_none h]
+  | some (x, t) =>
+    simp only [step_iter_of_next?_eq_some h, toListRev_iter t, Finite.toListRev_some h]
+termination_by Finite.wrap s
+
+@[simp] public theorem toArray_iter [Stream.WellFounded σ α] (s : σ) :
+    (iter s).toArray = Finite.toArray s := by
+  rw [← Iter.toArray_toList, toList_iter, Finite.toArray_toList]
+
+@[simp] public theorem length_iter [Stream.WellFounded σ α] (s : σ) :
+    (iter s).length = Finite.length s := by
+  rw [Iter.length_eq_match_step]
+  match h : next? s with
+  | none => simp [step_iter_of_next?_eq_none h, Finite.length_none h]
+  | some (x, t) =>
+    simp only [step_iter_of_next?_eq_some h, length_iter t, Finite.length_some h]
+termination_by Finite.wrap s
 
 end Std.Stream
