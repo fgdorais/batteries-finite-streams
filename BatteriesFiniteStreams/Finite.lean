@@ -33,7 +33,7 @@ termination checker.
 
 The `Stream.Finite` class is more general but is slightly trickier to use:
 ```
-def foo [Stream.WithNextRelation σ α] (s : σ) [Stream.Finite s] : β :=
+def foo [Stream.HasNextRelation σ α] (s : σ) [Stream.Finite s] : β :=
   match hint : Stream.next? s with
   | none => _
   | some (x, t) =>
@@ -42,7 +42,7 @@ def foo [Stream.WithNextRelation σ α] (s : σ) [Stream.Finite s] : β :=
 termination_by Stream.Finite.wrap s
 ```
 Several examples of this pattern can be found below. Note that `Stream.Finite s` depends on the
-`Stream.WithNextRelation` instance, so functions should take that instance rather than a plain
+`Stream.HasNextRelation` instance, so functions should take that instance rather than a plain
 `Stream` instance: a plain `Stream` instance only provides the default next relation, for which
 there are no `Stream.Finite` instances.
 
@@ -53,7 +53,7 @@ The total operations on finite streams live in the `Std.Stream.Finite` namespace
 namespace Std.Stream
 
 /-- Class to define the next relation of a stream type. -/
-public class WithNextRelation (σ : Type _) (α : outParam <| Type _) extends Stream σ α where
+public class HasNextRelation (σ : Type _) (α : outParam <| Type _) extends Stream σ α where
   /-- Next relation for a stream type `σ`. -/
   rel : σ → σ → Prop -- named `rel` to match `WellFoundedRelation`
   /-- The next relation extends the default one. -/
@@ -61,23 +61,23 @@ public class WithNextRelation (σ : Type _) (α : outParam <| Type _) extends St
 
 /-- Default next relation for a stream type. -/
 public instance (priority := low) defaultNextRelation (σ) [Stream σ α] :
-    WithNextRelation σ α where
+    HasNextRelation σ α where
   rel t s := ∃ x, next? s = some (x, t)
   rel_of_next?_eq_some h := ⟨_, h⟩
 
 /-- Next relation for a stream. -/
-public abbrev Next [WithNextRelation σ α] : σ → σ → Prop := WithNextRelation.rel
+public abbrev Next [HasNextRelation σ α] : σ → σ → Prop := HasNextRelation.rel
 
 /-- Next relation, restricted to a subset of streams. -/
-public abbrev RestrictedNext [WithNextRelation σ α] (p : σ → Prop) (s t : σ) : Prop :=
+public abbrev RestrictedNext [HasNextRelation σ α] (p : σ → Prop) (s t : σ) : Prop :=
   p t ∧ Next s t
 
-public theorem next_of_next?_eq_some [WithNextRelation σ α] {s t : σ} :
-    next? s = some (x, t) → Next t s := WithNextRelation.rel_of_next?_eq_some
+public theorem next_of_next?_eq_some [HasNextRelation σ α] {s t : σ} :
+    next? s = some (x, t) → Next t s := HasNextRelation.rel_of_next?_eq_some
 
 /-- Class for well-founded stream types. -/
 public protected class WellFounded.{u, v} (σ : Type u) (α : outParam <| Type v) extends
-  WithNextRelation σ α, WellFoundedRelation σ
+  HasNextRelation σ α, WellFoundedRelation σ
 
 /-- Defines a well-founded stream type instance from a well-founded relation. -/
 @[expose, instance_reducible] public def WellFounded.ofRelation.{u, v} [Stream.{u, v} σ α]
@@ -159,7 +159,7 @@ public instance : Stream.WellFounded Legacy.Range Nat :=
     · contradiction
 
 /-- Class for a finite stream of type `σ`. -/
-public protected class Finite [WithNextRelation σ α] (s : σ) : Prop where
+public protected class Finite [HasNextRelation σ α] (s : σ) : Prop where
   /-- A finite stream is accessible with respect to the `Next` relation. -/
   acc : Acc Next s
 
@@ -169,12 +169,12 @@ public instance [Stream.WellFounded σ α] (s : σ) : Stream.Finite s where
 namespace Finite
 
 /-- A stream related to a finite stream by the next relation is finite. -/
-public theorem ofNext [WithNextRelation σ α] {s t : σ} [Stream.Finite s] (h : Next t s) :
+public theorem ofNext [HasNextRelation σ α] {s t : σ} [Stream.Finite s] (h : Next t s) :
     Stream.Finite t where
   acc := match acc (s := s) with | ⟨_, a⟩ => a _ h
 
 /-- The stream following a finite stream is finite. -/
-public theorem ofSome [WithNextRelation σ α] {s t : σ} [Stream.Finite s]
+public theorem ofSome [HasNextRelation σ α] {s t : σ} [Stream.Finite s]
     (h : next? s = some (x, t)) : Stream.Finite t := .ofNext <| next_of_next?_eq_some h
 
 /-- Introduces a predicate `p` into an accessibility relation, provided that it holds of the
@@ -185,20 +185,20 @@ private theorem acc_restriction (p : α → Prop) {r : α → α → Prop} {a : 
   | intro x _ ih => exact ⟨_, fun y hr => ih y (hr h).2 (hr h).1⟩
 
 /-- Defines a finite stream instance for a restricted subset of streams. -/
-public theorem ofRestrictedNext.{u, v} [WithNextRelation.{u, v} σ α] {p : σ → Prop}
+public theorem ofRestrictedNext.{u, v} [HasNextRelation.{u, v} σ α] {p : σ → Prop}
     (H : ∀ {s t}, Next s t → p t → p s) (h : p s) (acc : Acc (RestrictedNext p) s) :
     Stream.Finite s where
   acc :=
     Subrelation.accessible (fun h₁ h₂ => ⟨H h₁ h₂, h₂, h₁⟩) (acc_restriction p acc h)
 
 /-- Wraps a finite stream into a well-founded type for use in termination proofs. -/
-@[expose] public def wrap [WithNextRelation σ α] (s : σ) [Stream.Finite s] :
+@[expose] public def wrap [HasNextRelation σ α] (s : σ) [Stream.Finite s] :
     { s : σ // Acc Next s } :=
   ⟨s, Finite.acc⟩
 
 /-- Folds a monadic function over a finite stream from left to right. -/
 @[specialize]
-public def foldlM [Monad m] [WithNextRelation σ α] (s : σ) [Stream.Finite s]
+public def foldlM [Monad m] [HasNextRelation σ α] (s : σ) [Stream.Finite s]
     (f : β → α → m β) (init : β) : m β :=
   match h : next? s with
   | none => pure init
@@ -207,11 +207,11 @@ public def foldlM [Monad m] [WithNextRelation σ α] (s : σ) [Stream.Finite s]
     f init x >>= foldlM t f
 termination_by wrap s
 
-public theorem foldlM_none [Monad m] [WithNextRelation σ α] {s : σ} [Stream.Finite s]
+public theorem foldlM_none [Monad m] [HasNextRelation σ α] {s : σ} [Stream.Finite s]
     {f : β → α → m β} (h : next? s = none) : foldlM s f init = pure init := by
   rw [foldlM]; split <;> simp_all
 
-public theorem foldlM_some [Monad m] [WithNextRelation σ α] {s t : σ} [Stream.Finite s]
+public theorem foldlM_some [Monad m] [HasNextRelation σ α] {s t : σ} [Stream.Finite s]
     [Stream.Finite t] {f : β → α → m β} (h : next? s = some (x, t)) :
     foldlM s f init = f init x >>= foldlM t f := by
   rw [foldlM]; split
@@ -220,7 +220,7 @@ public theorem foldlM_some [Monad m] [WithNextRelation σ α] {s t : σ} [Stream
 
 /-- Folds a monadic function over a finite stream from right to left. -/
 @[specialize]
-public def foldrM [Monad m] [WithNextRelation σ α] (s : σ) [Stream.Finite s]
+public def foldrM [Monad m] [HasNextRelation σ α] (s : σ) [Stream.Finite s]
     (f : α → β → m β) (init : β) : m β :=
   match h : next? s with
   | none => pure init
@@ -229,11 +229,11 @@ public def foldrM [Monad m] [WithNextRelation σ α] (s : σ) [Stream.Finite s]
     foldrM t f init >>= f x
 termination_by wrap s
 
-public theorem foldrM_none [Monad m] [WithNextRelation σ α] {s : σ} [Stream.Finite s]
+public theorem foldrM_none [Monad m] [HasNextRelation σ α] {s : σ} [Stream.Finite s]
     {f : α → β → m β} (h : next? s = none) : foldrM s f init = pure init := by
   rw [foldrM]; split <;> simp_all
 
-public theorem foldrM_some [Monad m] [WithNextRelation σ α] {s t : σ} [Stream.Finite s]
+public theorem foldrM_some [Monad m] [HasNextRelation σ α] {s t : σ} [Stream.Finite s]
     [Stream.Finite t] {f : α → β → m β} (h : next? s = some (x, t)) :
     foldrM s f init = foldrM t f init >>= f x := by
   rw [foldrM]; split
@@ -242,7 +242,7 @@ public theorem foldrM_some [Monad m] [WithNextRelation σ α] {s t : σ} [Stream
 
 /-- Folds a function over a finite stream from left to right. -/
 @[specialize]
-public def foldl [WithNextRelation σ α] (s : σ) [Stream.Finite s] (f : β → α → β)
+public def foldl [HasNextRelation σ α] (s : σ) [Stream.Finite s] (f : β → α → β)
     (init : β) : β :=
   match h : next? s with
   | none => init
@@ -251,11 +251,11 @@ public def foldl [WithNextRelation σ α] (s : σ) [Stream.Finite s] (f : β →
     foldl t f (f init x)
 termination_by wrap s
 
-public theorem foldl_none [WithNextRelation σ α] {s : σ} [Stream.Finite s] {f : β → α → β}
+public theorem foldl_none [HasNextRelation σ α] {s : σ} [Stream.Finite s] {f : β → α → β}
     (h : next? s = none) : foldl s f init = init := by
   rw [foldl]; split <;> simp_all
 
-public theorem foldl_some [WithNextRelation σ α] {s t : σ} [Stream.Finite s] [Stream.Finite t]
+public theorem foldl_some [HasNextRelation σ α] {s t : σ} [Stream.Finite s] [Stream.Finite t]
     {f : β → α → β} (h : next? s = some (x, t)) : foldl s f init = foldl t f (f init x) := by
   rw [foldl]; split
   · simp_all
@@ -263,7 +263,7 @@ public theorem foldl_some [WithNextRelation σ α] {s t : σ} [Stream.Finite s] 
 
 /-- Folds a function over a finite stream from right to left. -/
 @[specialize]
-public def foldr [WithNextRelation σ α] (s : σ) [Stream.Finite s] (f : α → β → β)
+public def foldr [HasNextRelation σ α] (s : σ) [Stream.Finite s] (f : α → β → β)
     (init : β) : β :=
   match h : next? s with
   | none => init
@@ -272,11 +272,11 @@ public def foldr [WithNextRelation σ α] (s : σ) [Stream.Finite s] (f : α →
     f x <| foldr t f init
 termination_by wrap s
 
-public theorem foldr_none [WithNextRelation σ α] {s : σ} [Stream.Finite s] {f : α → β → β}
+public theorem foldr_none [HasNextRelation σ α] {s : σ} [Stream.Finite s] {f : α → β → β}
     (h : next? s = none) : foldr s f init = init := by
   rw [foldr]; split <;> simp_all
 
-public theorem foldr_some [WithNextRelation σ α] {s t : σ} [Stream.Finite s] [Stream.Finite t]
+public theorem foldr_some [HasNextRelation σ α] {s t : σ} [Stream.Finite s] [Stream.Finite t]
     {f : α → β → β} (h : next? s = some (x, t)) : foldr s f init = f x (foldr t f init) := by
   rw [foldr]; split
   · simp_all
@@ -284,13 +284,13 @@ public theorem foldr_some [WithNextRelation σ α] {s t : σ} [Stream.Finite s] 
 
 /-- Length of a finite stream. -/
 @[inline]
-public def length [WithNextRelation σ α] (s : σ) [Stream.Finite s] : Nat :=
+public def length [HasNextRelation σ α] (s : σ) [Stream.Finite s] : Nat :=
   foldl s (fun l _ => l + 1) 0
 
-public theorem length_none [WithNextRelation σ α] {s : σ} [Stream.Finite s]
+public theorem length_none [HasNextRelation σ α] {s : σ} [Stream.Finite s]
     (h : next? s = none) : length s = 0 := foldl_none h
 
-private theorem foldl_succ [WithNextRelation σ α] {s : σ} [Stream.Finite s] :
+private theorem foldl_succ [HasNextRelation σ α] {s : σ} [Stream.Finite s] :
     foldl s (fun l _ => l + 1) n = foldl s (fun l _ => l + 1) 0 + n := by
   match h : next? s with
   | none => simp [foldl_none h]
@@ -300,19 +300,19 @@ private theorem foldl_succ [WithNextRelation σ α] {s : σ} [Stream.Finite s] :
     omega
 termination_by wrap s
 
-public theorem length_some [WithNextRelation σ α] {s t : σ} [Stream.Finite s] [Stream.Finite t]
+public theorem length_some [HasNextRelation σ α] {s t : σ} [Stream.Finite s] [Stream.Finite t]
     (h : next? s = some (x, t)) : length s = length t + 1 := by
   rw [length, foldl_some h, foldl_succ]; rfl
 
 /-- Sequence of values of a finite stream as a `List` in reverse order. -/
 @[inline]
-public def toListRev [WithNextRelation σ α] (s : σ) [Stream.Finite s] : List α :=
+public def toListRev [HasNextRelation σ α] (s : σ) [Stream.Finite s] : List α :=
   foldl s (fun r x => x :: r) []
 
-public theorem toListRev_none [WithNextRelation σ α] {s : σ} [Stream.Finite s]
+public theorem toListRev_none [HasNextRelation σ α] {s : σ} [Stream.Finite s]
     (h : next? s = none) : toListRev s = [] := foldl_none h
 
-private theorem foldl_cons [WithNextRelation σ α] {s : σ} [Stream.Finite s] :
+private theorem foldl_cons [HasNextRelation σ α] {s : σ} [Stream.Finite s] :
     foldl s (fun r x => x :: r) l = foldl s (fun r x => x :: r) [] ++ l := by
   match h : next? s with
   | none => simp [foldl_none h]
@@ -322,32 +322,32 @@ private theorem foldl_cons [WithNextRelation σ α] {s : σ} [Stream.Finite s] :
     simp
 termination_by wrap s
 
-public theorem toListRev_some [WithNextRelation σ α] {s t : σ} [Stream.Finite s]
+public theorem toListRev_some [HasNextRelation σ α] {s t : σ} [Stream.Finite s]
     [Stream.Finite t] (h : next? s = some (x, t)) : toListRev s = toListRev t ++ [x] := by
   rw [toListRev, foldl_some h, foldl_cons]; rfl
 
 /-- Sequence of values of a finite stream as a `List`. -/
 @[inline]
-public def toList [WithNextRelation σ α] (s : σ) [Stream.Finite s] : List α :=
+public def toList [HasNextRelation σ α] (s : σ) [Stream.Finite s] : List α :=
   toListRev s |>.reverse
 
-public theorem toList_none [WithNextRelation σ α] {s : σ} [Stream.Finite s]
+public theorem toList_none [HasNextRelation σ α] {s : σ} [Stream.Finite s]
     (h : next? s = none) : toList s = [] := by
   simp [toList, toListRev_none h]
 
-public theorem toList_some [WithNextRelation σ α] {s t : σ} [Stream.Finite s] [Stream.Finite t]
+public theorem toList_some [HasNextRelation σ α] {s t : σ} [Stream.Finite s] [Stream.Finite t]
     (h : next? s = some (x, t)) : toList s = x :: toList t := by
   simp [toList, toListRev_some h]
 
 /-- Sequence of values of a finite stream as an `Array`. -/
 @[inline]
-public def toArray [WithNextRelation σ α] (s : σ) [Stream.Finite s] : Array α :=
+public def toArray [HasNextRelation σ α] (s : σ) [Stream.Finite s] : Array α :=
   foldl s Array.push #[]
 
-public theorem toArray_none [WithNextRelation σ α] {s : σ} [Stream.Finite s]
+public theorem toArray_none [HasNextRelation σ α] {s : σ} [Stream.Finite s]
     (h : next? s = none) : toArray s = #[] := foldl_none h
 
-private theorem foldl_push [WithNextRelation σ α] {s : σ} [Stream.Finite s] :
+private theorem foldl_push [HasNextRelation σ α] {s : σ} [Stream.Finite s] :
     foldl s Array.push l = l ++ foldl s Array.push #[] := by
   match h : next? s with
   | none => simp [foldl_none h]
@@ -357,11 +357,11 @@ private theorem foldl_push [WithNextRelation σ α] {s : σ} [Stream.Finite s] :
     simp
 termination_by wrap s
 
-public theorem toArray_some [WithNextRelation σ α] {s t : σ} [Stream.Finite s] [Stream.Finite t]
+public theorem toArray_some [HasNextRelation σ α] {s t : σ} [Stream.Finite s] [Stream.Finite t]
     (h : next? s = some (x, t)) : toArray s = #[x] ++ toArray t := by
   rw [toArray, foldl_some h, foldl_push]; rfl
 
-@[simp] public theorem toArray_toList [WithNextRelation σ α] {s : σ}
+@[simp] public theorem toArray_toList [HasNextRelation σ α] {s : σ}
     [Stream.Finite s] : (toList s).toArray = toArray s := by
   match h : next? s with
   | none => simp [toList_none h, toArray_none h]
