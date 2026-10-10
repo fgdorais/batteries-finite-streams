@@ -11,6 +11,6 @@
    "inputRev": "main",
    "inherited": false,
    "configFile": "lakefile.toml"}],
- "name": "«batteries-stream»",
+ "name": "«batteries-finite-streams»",
  "lakeDir": ".lake",
  "fixedToolchain": false}

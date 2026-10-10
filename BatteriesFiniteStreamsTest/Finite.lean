@@ -1,4 +1,4 @@
-import BatteriesStream.Finite
+import BatteriesFiniteStreams.Finite
 
 /- Example of a stream type which is not well-founded but has many derivable finite instances. -/
 structure Test where

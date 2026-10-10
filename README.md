@@ -1,20 +1,20 @@
-# BatteriesStream
+# BatteriesFiniteStreams
 
 Finite streams, stream combinators and stream iterators for Lean 4, as a Batteries cell.
 
-- `BatteriesStream.Finite` defines the classes `Std.Stream.Finite` (a specific stream is finite)
-  and `Std.Stream.WellFounded` (every stream of a type is finite), with instances for lists,
-  subarrays, raw substrings, byte slices and legacy ranges. Finite streams support terminating
-  folds and conversions: `foldl`, `foldr`, `foldlM`, `foldrM`, `length`, `toList`, `toListRev`
-  and `toArray`.
-- `BatteriesStream.Combinators` provides `const`, `takeUpTo`, `map`, `Union`, `concat` and
+- `BatteriesFiniteStreams.Finite` defines the classes `Std.Stream.Finite` (a specific stream is
+  finite) and `Std.Stream.WellFounded` (every stream of a type is finite), with instances for
+  lists, subarrays, raw substrings, byte slices and legacy ranges. Finite streams support
+  terminating folds and conversions: `foldl`, `foldr`, `foldlM`, `foldrM`, `length`, `toList`,
+  `toListRev` and `toArray`.
+- `BatteriesFiniteStreams.Combinators` provides `const`, `takeUpTo`, `map`, `Union`, `concat` and
   `join`, together with finiteness instances for these and for zipped (product) streams.
-- `BatteriesStream.Iterator` converts streams to productive pure iterators with
+- `BatteriesFiniteStreams.Iterator` converts streams to productive pure iterators with
   `Std.Stream.iter`, and connects finiteness both ways: iterators of well-founded stream types
   are finite, and finite pure iterators form a well-founded stream type.
 
 ```lean
-import BatteriesStream
+import BatteriesFiniteStreams
 
 open Std.Stream
 
@@ -29,8 +29,8 @@ Add the cell to your `lakefile.toml`:
 
 ```toml
 [[require]]
-name = "batteries-stream"
-git = "https://github.com/fgdorais/batteries-stream"
+name = "batteries-finite-streams"
+git = "https://github.com/fgdorais/batteries-finite-streams"
 rev = "main"
 ```
 
