@@ -185,4 +185,57 @@ termination_by Finite.wrap s
     simp only [step_iter_of_next?_eq_some h, length_iter t, Finite.length_some h]
 termination_by Finite.wrap s
 
+/-! ## Finiteness
+
+A stream is identified with its iterator, which is productive and never skips. Under this
+identification, the successor relation of iterators is the default next relation of streams, so
+finiteness is the same notion on both sides.
+-/
+
+public theorem isPlausibleSuccessorOf_iter_iff [Stream σ α] {s t : σ} :
+    (iter t).IsPlausibleSuccessorOf (iter s) ↔ ∃ x, next? s = some (x, t) := by
+  constructor
+  · rintro ⟨step, hs, hp⟩
+    match step, hs, hp with
+    | .yield _ x, rfl, hp => exact ⟨x, hp⟩
+    | .skip _, _, hp => nomatch hp
+    | .done, hs, _ => nomatch hs
+  · rintro ⟨x, h⟩
+    exact ⟨.yield (iter t).toIterM x, rfl, h⟩
+
+public theorem acc_iter_iff [Stream σ α] {s : σ} :
+    Acc Iter.IsPlausibleSuccessorOf (iter s) ↔
+      Acc (fun t s : σ => ∃ x, next? s = some (x, t)) s := by
+  constructor
+  · intro h
+    generalize hi : iter s = it at h
+    induction h generalizing s with
+    | intro _ _ ih =>
+      subst hi
+      exact ⟨_, fun t ht => ih (iter t) (isPlausibleSuccessorOf_iter_iff.2 ht) rfl⟩
+  · intro h
+    induction h with
+    | intro s _ ih =>
+      refine ⟨_, fun it h => ih it.internalState.stream ?_⟩
+      exact isPlausibleSuccessorOf_iter_iff (t := it.internalState.stream) |>.1 h
+
+/-- The iterator of a finite stream is accessible for the successor relation. -/
+public theorem Finite.acc_iter [HasNextRelation σ α] (s : σ) [Stream.Finite s] :
+    Acc Iter.IsPlausibleSuccessorOf (iter s) :=
+  acc_iter_iff.2 <| Subrelation.accessible (fun ⟨_, h⟩ => next_of_next?_eq_some h) Finite.acc
+
+public theorem finite_defaultNextRelation_iff [Stream σ α] {s : σ} :
+    @Stream.Finite σ α (defaultNextRelation σ) s ↔ Acc Iter.IsPlausibleSuccessorOf (iter s) :=
+  ⟨fun h => acc_iter_iff.2 h.acc, fun h => ⟨acc_iter_iff.1 h⟩⟩
+
+public theorem finite_streamIterator_iff [Stream σ α] :
+    Iterators.Finite (StreamIterator σ α) Id ↔
+      _root_.WellFounded (fun t s : σ => ∃ x, next? s = some (x, t)) := by
+  constructor
+  · intro _
+    exact ⟨fun s => acc_iter_iff.1 (Iterators.Finite.wf_of_id.apply (iter s))⟩
+  · intro h
+    let _ : Stream.WellFounded σ α := @WellFounded.ofRelation _ _ _ ⟨_, h⟩ fun h => ⟨_, h⟩
+    infer_instance
+
 end Std.Stream
