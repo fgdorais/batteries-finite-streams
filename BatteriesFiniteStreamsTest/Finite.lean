@@ -32,7 +32,7 @@ instance : Std.Stream.Finite (Test.mk true n) :=
   Std.Stream.Finite.ofRestrictedNext (p := (Test.decr ·))
     (fun h h' => (h h').1) rfl (wf.apply _)
 
-#guard Std.Stream.toList (Test.mk true 3) == [2, 1, 0]
+#guard Std.Stream.Finite.toList (Test.mk true 3) == [2, 1, 0]
 
 /--
 error: failed to synthesize instance of type class
@@ -41,29 +41,30 @@ error: failed to synthesize instance of type class
 Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
 -/
 #guard_msgs in
-#eval Std.Stream.toList (Test.mk false 3)
+#eval Std.Stream.Finite.toList (Test.mk false 3)
 
 /- Standard well-founded stream types -/
 
-#guard Std.Stream.toList [1, 2, 3] == [1, 2, 3]
-#guard Std.Stream.toArray #[1, 2, 3][1...*] == #[2, 3]
-#guard Std.Stream.toList "abc".toRawSubstring == ['a', 'b', 'c']
-#guard Std.Stream.length (ByteArray.mk #[1, 2, 3]).toByteSlice == 3
-#guard Std.Stream.toList [0:10:3] == [0, 3, 6, 9]
-#guard Std.Stream.foldr [1, 2, 3] (· :: ·) [] == [1, 2, 3]
-#guard Std.Stream.toListRev [1, 2, 3] == [3, 2, 1]
+#guard Std.Stream.Finite.toList [1, 2, 3] == [1, 2, 3]
+#guard Std.Stream.Finite.toArray #[1, 2, 3][1...*] == #[2, 3]
+#guard Std.Stream.Finite.toList "abc".toRawSubstring == ['a', 'b', 'c']
+#guard Std.Stream.Finite.length (ByteArray.mk #[1, 2, 3]).toByteSlice == 3
+#guard Std.Stream.Finite.toList [0:10:3] == [0, 3, 6, 9]
+#guard Std.Stream.Finite.foldr [1, 2, 3] (· :: ·) [] == [1, 2, 3]
+#guard Std.Stream.Finite.toListRev [1, 2, 3] == [3, 2, 1]
 
-example : Std.Stream.toList [1, 2, 3] = [1, 2, 3] := by simp
+example : Std.Stream.Finite.toList [1, 2, 3] = [1, 2, 3] := by simp
 
-example : Std.Stream.length [1, 2, 3] = 3 := by simp
-example : Std.Stream.toArray [1, 2, 3] = #[1, 2, 3] := by simp
+example : Std.Stream.Finite.length [1, 2, 3] = 3 := by simp
+example : Std.Stream.Finite.toArray [1, 2, 3] = #[1, 2, 3] := by simp
 
 /- Folds -/
 
-#guard Std.Stream.foldlM (m := Option) [1, 2, 3] (fun b a => some (b + a)) 0 == some 6
-#guard Std.Stream.foldrM (m := Option) [1, 2, 3] (fun a b => some (a :: b)) [] == some [1, 2, 3]
-#guard Std.Stream.foldl [1, 2, 3] (fun b a => 10 * b + a) 0 == 123
-#guard Std.Stream.foldr [1, 2, 3] (fun a b => 10 * b + a) 0 == 321
+#guard Std.Stream.Finite.foldlM (m := Option) [1, 2, 3] (fun b a => some (b + a)) 0 == some 6
+#guard Std.Stream.Finite.foldrM (m := Option) [1, 2, 3] (fun a b => some (a :: b)) [] ==
+  some [1, 2, 3]
+#guard Std.Stream.Finite.foldl [1, 2, 3] (fun b a => 10 * b + a) 0 == 123
+#guard Std.Stream.Finite.foldr [1, 2, 3] (fun a b => 10 * b + a) 0 == 321
 
 /- Documented recursion patterns -/
 

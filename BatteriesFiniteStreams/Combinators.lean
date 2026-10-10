@@ -38,8 +38,8 @@ public abbrev const (x : α) : Constant x := ⟨⟩
 /-- Restricts a given stream to a maximum number of values.
 
 ```
-toList (takeUpTo 3 [1,2,3,4,5,6]) = [1,2,3]
-toList (takeUpTo 3 [1,2]) = [1,2]
+Finite.toList (takeUpTo 3 [1,2,3,4,5,6]) = [1,2,3]
+Finite.toList (takeUpTo 3 [1,2]) = [1,2]
 ```
 -/
 public structure TakeUpTo (σ α) [Stream σ α] where
@@ -92,7 +92,7 @@ public theorem next?_takeUpTo_eq_some_of_next?_eq_some_of_ne_zero [Stream σ α]
 /-- Applies a function to each element of a stream.
 
 ```
-toList (map (· ^ 2) [1,2,3,4,5]) = [1,4,9,16,25]
+Finite.toList (map (· ^ 2) [1,2,3,4,5]) = [1,4,9,16,25]
 ```
 
 The function `f` is a parameter of the type `Map f σ` rather than a field, so the stream state does
@@ -228,7 +228,7 @@ public instance [Stream.WellFounded σ α] [Stream.WellFounded τ α] :
 /-- Concatenates two streams one after the other.
 
 ```
-toList (concat [1,2,3] [4,5]) = [1,2,3,4,5]
+Finite.toList (concat [1,2,3] [4,5]) = [1,2,3,4,5]
 ```
 -/
 public structure Concat (σ τ α) [Stream σ α] [Stream τ α] where
@@ -316,7 +316,7 @@ public instance [Stream.WellFounded σ α] [Stream.WellFounded τ α] :
 /-- Joins a list of streams one after the other.
 
 ```
-toList (join [[1,2],[3,4,5],[6]]) = [1,2,3,4,5,6]
+Finite.toList (join [[1,2],[3,4,5],[6]]) = [1,2,3,4,5,6]
 ```
 -/
 public structure Join (σ α) [Stream σ α] where
@@ -427,7 +427,7 @@ The standard library zips two streams using the product type: the stream `(s, t)
 values from `s` and `t` until either stream is exhausted.
 
 ```
-toList ([1,2,3], ['a','b','c','d','e']) = [(1, 'a'), (2, 'b'), (3, 'c')]
+Finite.toList ([1,2,3], ['a','b','c','d','e']) = [(1, 'a'), (2, 'b'), (3, 'c')]
 ```
 -/
 

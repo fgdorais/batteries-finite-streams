@@ -2,7 +2,7 @@ import BatteriesFiniteStreams.Combinators
 
 /- Examples from docstrings -/
 
-open Std.Stream
+open Std.Stream Std.Stream.Finite
 
 -- Constant
 #guard next? (const 'a') == some ('a', const 'a')

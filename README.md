@@ -4,9 +4,9 @@ Finite streams, stream combinators and stream iterators for Lean 4, as a Batteri
 
 - `BatteriesFiniteStreams.Finite` defines the classes `Std.Stream.Finite` (a specific stream is
   finite) and `Std.Stream.WellFounded` (every stream of a type is finite), with instances for
-  lists, subarrays, raw substrings, byte slices and legacy ranges. Finite streams support
-  terminating folds and conversions: `foldl`, `foldr`, `foldlM`, `foldrM`, `length`, `toList`,
-  `toListRev` and `toArray`.
+  lists, subarrays, raw substrings, byte slices and legacy ranges. The namespace
+  `Std.Stream.Finite` provides terminating folds and conversions for finite streams: `foldl`,
+  `foldr`, `foldlM`, `foldrM`, `length`, `toList`, `toListRev` and `toArray`.
 - `BatteriesFiniteStreams.Combinators` provides `const`, `takeUpTo`, `map`, `Union`, `concat` and
   `join`, together with finiteness instances for these and for zipped (product) streams.
 - `BatteriesFiniteStreams.Iterator` converts streams to productive pure iterators with
@@ -16,7 +16,7 @@ Finite streams, stream combinators and stream iterators for Lean 4, as a Batteri
 ```lean
 import BatteriesFiniteStreams
 
-open Std.Stream
+open Std.Stream Std.Stream.Finite
 
 #eval toList (takeUpTo 3 (const 'a'))           -- ['a', 'a', 'a']
 #eval toList (concat [1, 2, 3] [4, 5])          -- [1, 2, 3, 4, 5]
