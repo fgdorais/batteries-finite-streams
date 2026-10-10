@@ -15,7 +15,7 @@ instance : Std.Stream Test Nat where
     else
       none
 
-instance : Std.Stream.WithNextRelation Test Nat where
+instance : Std.Stream.HasNextRelation Test Nat where
   rel s t := t.decr → s.decr ∧ s.val < t.val
   rel_of_next?_eq_some := by
     intro _ _ _ h
@@ -74,7 +74,7 @@ def sumWF [Std.Stream.WellFounded σ Nat] (s : σ) : Nat :=
   | some (x, t) => x + sumWF t
 termination_by s
 
-def sumFinite [Std.Stream.WithNextRelation σ Nat] (s : σ) [Std.Stream.Finite s] : Nat :=
+def sumFinite [Std.Stream.HasNextRelation σ Nat] (s : σ) [Std.Stream.Finite s] : Nat :=
   match hint : Std.Stream.next? s with
   | none => 0
   | some (x, t) =>

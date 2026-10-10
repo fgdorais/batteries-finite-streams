@@ -119,7 +119,7 @@ public theorem next?_map_eq_none_of_next?_eq_none [Stream σ α] {s : σ} {f : �
     (h : next? s = none) : next? (map f s) = none := by
   simp [next?, h]
 
-public instance (f : α → β) [WithNextRelation σ α] : WithNextRelation (Map f σ) β where
+public instance (f : α → β) [HasNextRelation σ α] : HasNextRelation (Map f σ) β where
   rel | ⟨s⟩, ⟨s'⟩ => Next s s'
   rel_of_next?_eq_some {s _ s'} h := by
     simp only [next?] at h
@@ -129,7 +129,7 @@ public instance (f : α → β) [WithNextRelation σ α] : WithNextRelation (Map
       · cases h; simp [next_of_next?_eq_some, *]
       · contradiction
 
-public instance [WithNextRelation σ α] (f : α → β) (s : σ) [Stream.Finite s] :
+public instance [HasNextRelation σ α] (f : α → β) (s : σ) [Stream.Finite s] :
     Stream.Finite (map f s) where
   acc := InvImage.accessible Map.stream Finite.acc
 
@@ -174,8 +174,8 @@ public theorem Union.next?_inr_eq_some_of_next?_eq_some [Stream σ α] [Stream �
     (h : next? t = some (x, t')) : next? (.inr t : Union σ τ α) = some (x, .inr t') := by
   simp [next?, h]
 
-public instance [WithNextRelation σ α] [WithNextRelation τ α] :
-    WithNextRelation (Union σ τ α) α where
+public instance [HasNextRelation σ α] [HasNextRelation τ α] :
+    HasNextRelation (Union σ τ α) α where
   rel
   | .inl s₁, .inl s₂ => Next s₁ s₂
   | .inr t₁, .inr t₂ => Next t₁ t₂
@@ -192,28 +192,28 @@ public instance [WithNextRelation σ α] [WithNextRelation τ α] :
       simp only at h; split at h <;> cases h
 
 @[instance]
-public protected theorem Union.finite_inl [WithNextRelation σ α] [WithNextRelation τ α] (s : σ)
+public protected theorem Union.finite_inl [HasNextRelation σ α] [HasNextRelation τ α] (s : σ)
     [Stream.Finite s] : Stream.Finite (inl s : Union σ τ α) := by
   apply Finite.mk
   apply Acc.intro
   intro
-  | inr _, h => simp [Next, WithNextRelation.rel] at h
+  | inr _, h => simp [Next, HasNextRelation.rel] at h
   | inl s', h =>
-    simp only [Next, WithNextRelation.rel] at h
+    simp only [Next, HasNextRelation.rel] at h
     have : Stream.Finite s' := .ofNext h
     have : Stream.Finite (inl s' : Union σ τ α) := Union.finite_inl s'
     apply Finite.acc
 termination_by Finite.wrap s
 
 @[instance]
-public protected theorem Union.finite_inr [WithNextRelation σ α] [WithNextRelation τ α] (t : τ)
+public protected theorem Union.finite_inr [HasNextRelation σ α] [HasNextRelation τ α] (t : τ)
     [Stream.Finite t] : Stream.Finite (inr t : Union σ τ α) := by
   apply Finite.mk
   apply Acc.intro
   intro
-  | inl _, h => simp [Next, WithNextRelation.rel] at h
+  | inl _, h => simp [Next, HasNextRelation.rel] at h
   | inr t', h =>
-    simp only [Next, WithNextRelation.rel] at h
+    simp only [Next, HasNextRelation.rel] at h
     have : Stream.Finite t' := .ofNext h
     have : Stream.Finite (inr t' : Union σ τ α) := Union.finite_inr t'
     apply Finite.acc
@@ -252,8 +252,8 @@ public instance [Stream σ α] [Stream τ α] : Stream (Concat σ τ α) α wher
       | some (x, t) => some (x, concat s t)
       | none => none
 
-public instance [WithNextRelation σ α] [WithNextRelation τ α] :
-    WithNextRelation (Concat σ τ α) α where
+public instance [HasNextRelation σ α] [HasNextRelation τ α] :
+    HasNextRelation (Concat σ τ α) α where
   rel
   | concat s₁ t₁, concat s₂ t₂ =>
     match next? s₂ with
@@ -269,14 +269,14 @@ public instance [WithNextRelation σ α] [WithNextRelation τ α] :
         · cases h; simp [next_of_next?_eq_some, *]
         · contradiction
 
-private theorem Concat.finite_aux [WithNextRelation σ α] [WithNextRelation τ α]
+private theorem Concat.finite_aux [HasNextRelation σ α] [HasNextRelation τ α]
     (s : σ) (t : τ) [Stream.Finite s] [Stream.Finite t] (h : next? s = none) :
     Stream.Finite (concat s t) := by
   apply Finite.mk
   apply Acc.intro
   intro
   | concat s' t', hn =>
-    simp [Next, WithNextRelation.rel] at hn
+    simp [Next, HasNextRelation.rel] at hn
     split at hn
     · simp [h] at *
     · have : Stream.Finite t' := .ofNext hn.1
@@ -287,13 +287,13 @@ termination_by Finite.wrap t
 decreasing_by exact hn.1
 
 @[instance]
-public protected theorem Concat.finite [WithNextRelation σ α] [WithNextRelation τ α]
+public protected theorem Concat.finite [HasNextRelation σ α] [HasNextRelation τ α]
     (s : σ) (t : τ) [Stream.Finite s] [Stream.Finite t] : Stream.Finite (concat s t) := by
   apply Finite.mk
   apply Acc.intro
   intro
   | concat s' t', hn =>
-    simp [Next, WithNextRelation.rel] at hn
+    simp [Next, HasNextRelation.rel] at hn
     split at hn
     · have : Stream.Finite s' := .ofNext hn.1
       have := Concat.finite s' t
@@ -352,7 +352,7 @@ public theorem next?_join_cons_eq_of_next?_eq_none [Stream σ α] {s : σ}
   simp [next?, Join.next?, h]
 
 /-- Next relation for joined streams. -/
-public protected def Join.Next [WithNextRelation σ α] : Join σ α → Join σ α → Prop
+public protected def Join.Next [HasNextRelation σ α] : Join σ α → Join σ α → Prop
   | _, join [] => False
   | join l₁, join (s₂ :: l₂) =>
     match Stream.next? s₂ with
@@ -362,7 +362,7 @@ public protected def Join.Next [WithNextRelation σ α] : Join σ α → Join σ
       | [] => False
       | s₁ :: l₁ => l₁ = l₂ ∧ Stream.Next s₁ s₂
 
-public protected theorem Join.next_of_next?_eq_some [WithNextRelation σ α]
+public protected theorem Join.next_of_next?_eq_some [HasNextRelation σ α]
     {j₁ j₂ : Join σ α} (h : Stream.next? j₁ = some (x, j₂)) : Join.Next j₂ j₁ := by
   match j₁, j₂ with
   | join [], _ => simp [Stream.next?, Join.next?] at h
@@ -377,24 +377,24 @@ public protected theorem Join.next_of_next?_eq_some [WithNextRelation σ α]
       rw [Join.Next.eq_def]
       simp [hs, Join.next_of_next?_eq_some h]
 
-public instance [WithNextRelation σ α] : WithNextRelation (Join σ α) α where
+public instance [HasNextRelation σ α] : HasNextRelation (Join σ α) α where
   rel := Join.Next
   rel_of_next?_eq_some := Join.next_of_next?_eq_some
 
-public instance [WithNextRelation σ α] : Stream.Finite (join (σ := σ) (α := α) []) where
+public instance [HasNextRelation σ α] : Stream.Finite (join (σ := σ) (α := α) []) where
   acc := by
     apply Acc.intro
     intro _ h
-    simp [Next, WithNextRelation.rel, Join.Next] at h
+    simp [Next, HasNextRelation.rel, Join.Next] at h
 
 @[instance]
-public protected theorem Join.finite_cons [WithNextRelation σ α] (s : σ) (l : List σ)
+public protected theorem Join.finite_cons [HasNextRelation σ α] (s : σ) (l : List σ)
     [Stream.Finite s] [Stream.Finite (join l)] : Stream.Finite (join (s :: l)) := by
   apply Finite.mk
   apply Acc.intro
   intro
   | join l', h =>
-    simp only [Stream.Next, WithNextRelation.rel] at h
+    simp only [Stream.Next, HasNextRelation.rel] at h
     rw [Join.Next.eq_def] at h
     simp only at h
     split at h
@@ -431,8 +431,8 @@ Finite.toList ([1,2,3], ['a','b','c','d','e']) = [(1, 'a'), (2, 'b'), (3, 'c')]
 ```
 -/
 
-public instance [WithNextRelation σ α] [WithNextRelation τ β] :
-    WithNextRelation (σ × τ) (α × β) where
+public instance [HasNextRelation σ α] [HasNextRelation τ β] :
+    HasNextRelation (σ × τ) (α × β) where
   rel | (s₁, t₁), (s₂, t₂) => Next s₁ s₂ ∧ Next t₁ t₂
   rel_of_next?_eq_some {p₁ _ p₂} h := by
     simp only [next?] at h
@@ -444,19 +444,19 @@ public instance [WithNextRelation σ α] [WithNextRelation τ β] :
         · contradiction
         · cases h; simp [next_of_next?_eq_some, *]
 
-public instance [WithNextRelation σ α] [WithNextRelation τ β] {s : σ} {t : τ}
+public instance [HasNextRelation σ α] [HasNextRelation τ β] {s : σ} {t : τ}
     [Stream.Finite s] : Stream.Finite (s, t) where
   acc := Subrelation.accessible (fun h => h.1) (InvImage.accessible Prod.fst Finite.acc)
 
-public instance [WithNextRelation σ α] [WithNextRelation τ β] {s : σ} {t : τ}
+public instance [HasNextRelation σ α] [HasNextRelation τ β] {s : σ} {t : τ}
     [Stream.Finite t] : Stream.Finite (s, t) where
   acc := Subrelation.accessible (fun h => h.2) (InvImage.accessible Prod.snd Finite.acc)
 
-public instance [Stream.WellFounded σ α] [WithNextRelation τ β] :
+public instance [Stream.WellFounded σ α] [HasNextRelation τ β] :
     Stream.WellFounded (σ × τ) (α × β) where
   wf := .intro fun (_, _) => Finite.acc
 
-public instance [WithNextRelation σ α] [Stream.WellFounded τ β] :
+public instance [HasNextRelation σ α] [Stream.WellFounded τ β] :
     Stream.WellFounded (σ × τ) (α × β) where
   wf := .intro fun (_, _) => Finite.acc
 
