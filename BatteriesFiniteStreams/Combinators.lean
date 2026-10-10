@@ -98,7 +98,7 @@ Finite.toList (map (· ^ 2) [1,2,3,4,5]) = [1,4,9,16,25]
 The function `f` is a parameter of the type `Map f σ` rather than a field, so the stream state does
 not store a closure.
 -/
-public structure Map (f : α → β) (σ) [Stream σ α] where
+public structure Map {β : Type _} (f : α → β) (σ) [Stream σ α] where
   /-- Underlying stream. -/
   stream : σ
 
