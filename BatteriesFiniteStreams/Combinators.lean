@@ -110,17 +110,16 @@ public instance [Stream.WellFounded σ α] (f : α → β) : Stream.WellFounded 
 ```
 Finite.toList (concat [1,2,3] [4,5]) = [1,2,3,4,5]
 ```
+
+The first stream is dropped once it is exhausted (`Concat.snd`), so it is not polled again.
 -/
-public structure Concat (σ τ α) [Stream σ α] [Stream τ α] where
-  concat ::
-  /-- First stream. -/
-  fst : σ
-  /-- Second stream. -/
-  snd : τ
+public inductive Concat (σ τ α) [Stream σ α] [Stream τ α] where
+  /-- Concatenation of two streams. -/
+  | concat (s : σ) (t : τ)
+  /-- Concatenation where the first stream is exhausted. -/
+  | snd (t : τ)
 
 export Concat (concat)
-
-attribute [inherit_doc Concat] concat
 
 public instance [Stream σ α] [Stream τ α] : Stream (Concat σ τ α) α where
   next?
@@ -129,42 +128,48 @@ public instance [Stream σ α] [Stream τ α] : Stream (Concat σ τ α) α wher
     | some (x, s) => some (x, concat s t)
     | none =>
       match next? t with
-      | some (x, t) => some (x, concat s t)
+      | some (x, t) => some (x, .snd t)
       | none => none
+  | .snd t =>
+    match next? t with
+    | some (x, t) => some (x, .snd t)
+    | none => none
 
 public instance [HasNextRelation σ α] [HasNextRelation τ α] :
     HasNextRelation (Concat σ τ α) α where
   rel
-  | concat s₁ t₁, concat s₂ t₂ =>
-    match next? s₂ with
-    | some _ => Next s₁ s₂ ∧ t₁ = t₂
-    | none => Next t₁ t₂ ∧ s₁ = s₂
+  | concat s₁ t₁, concat s₂ t₂ => Next s₁ s₂ ∧ t₁ = t₂
+  | .snd t₁, concat _ t₂ | .snd t₁, .snd t₂ => Next t₁ t₂
+  | concat _ _, .snd _ => False
   rel_of_next?_eq_some {c₁ _ c₂} h := by
     match c₁, c₂ with
-    | concat s₁ t₁, concat s₂ t₂ =>
+    | concat s₁ t₁, _ =>
       simp only [next?] at h
       split at h
       · cases h; simp [next_of_next?_eq_some, *]
       · split at h
         · cases h; simp [next_of_next?_eq_some, *]
         · contradiction
+    | .snd t₁, _ =>
+      simp only [next?] at h
+      split at h
+      · cases h; simp [next_of_next?_eq_some, *]
+      · contradiction
 
-private theorem Concat.finite_aux [HasNextRelation σ α] [HasNextRelation τ α]
-    (s : σ) (t : τ) [Stream.Finite s] [Stream.Finite t] (h : next? s = none) :
-    Stream.Finite (concat s t) := by
+@[instance]
+public protected theorem Concat.finite_snd [HasNextRelation σ α] [HasNextRelation τ α]
+    (t : τ) [Stream.Finite t] : Stream.Finite (.snd t : Concat σ τ α) := by
   apply Finite.mk
   apply Acc.intro
   intro
-  | concat s' t', hn =>
-    simp [Next, HasNextRelation.rel] at hn
-    split at hn
-    · simp [h] at *
-    · have : Stream.Finite t' := .ofNext hn.1
-      have := finite_aux s t' h
-      rw [hn.2]
-      exact Finite.acc
+  | concat _ _, hn => simp [Next, HasNextRelation.rel] at hn
+  | .snd t', hn =>
+    simp only [Next, HasNextRelation.rel] at hn
+    have : Stream.Finite t' := .ofNext hn
+    have := Concat.finite_snd (σ := σ) (α := α) t'
+    exact Finite.acc
 termination_by Finite.wrap t
-decreasing_by exact hn.1
+decreasing_by exact hn
 
 @[instance]
 public protected theorem Concat.finite [HasNextRelation σ α] [HasNextRelation τ α]
@@ -173,23 +178,23 @@ public protected theorem Concat.finite [HasNextRelation σ α] [HasNextRelation 
   apply Acc.intro
   intro
   | concat s' t', hn =>
-    simp [Next, HasNextRelation.rel] at hn
-    split at hn
-    · have : Stream.Finite s' := .ofNext hn.1
-      have := Concat.finite s' t
-      rw [hn.2]
-      exact Finite.acc
-    · next hs =>
-      have : Stream.Finite t' := .ofNext hn.1
-      have := Concat.finite_aux s t' hs
-      rw [hn.2]
-      exact Finite.acc
+    simp only [Next, HasNextRelation.rel] at hn
+    have : Stream.Finite s' := .ofNext hn.1
+    have := Concat.finite s' t
+    rw [hn.2]
+    exact Finite.acc
+  | .snd t', hn =>
+    simp only [Next, HasNextRelation.rel] at hn
+    have : Stream.Finite t' := .ofNext hn
+    exact Finite.acc (s := (.snd t' : Concat σ τ α))
 termination_by Finite.wrap s
 decreasing_by exact hn.1
 
 public instance [Stream.WellFounded σ α] [Stream.WellFounded τ α] :
     Stream.WellFounded (Concat σ τ α) α where
-  wf := .intro fun | concat _ _ => Finite.acc
+  wf := .intro fun
+    | concat _ _ => Finite.acc
+    | .snd _ => Finite.acc
 
 /-! ## Join -/
 
