@@ -9,9 +9,10 @@ Finite streams, stream combinators and stream iterators for Lean 4, as a Batteri
   `foldr`, `foldlM`, `foldrM`, `length`, `toList`, `toListRev` and `toArray`.
 - `BatteriesFiniteStreams.Combinators` provides `const`, `takeUpTo`, `map`, `Union`, `concat` and
   `join`, together with finiteness instances for these and for zipped (product) streams.
-- `BatteriesFiniteStreams.Iterator` converts streams to productive pure iterators with
-  `Std.Stream.iter`, and connects finiteness both ways: iterators of well-founded stream types
-  are finite, and finite pure iterators form a well-founded stream type.
+- `BatteriesFiniteStreams.Iterator` identifies streams with productive pure iterators that
+  never skip, via `Std.Stream.iter`, with lemmas to transfer `toList`, `toArray` and `length`.
+  Finiteness is the same notion on both sides: `Std.Stream.WellFounded` corresponds to
+  `Std.Iterators.Finite`, and `Std.Stream.Finite s` to accessibility of `Std.Stream.iter s`.
 
 ```lean
 import BatteriesFiniteStreams

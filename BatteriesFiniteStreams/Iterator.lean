@@ -14,18 +14,25 @@ features to support monadic effects, among other things. This added functionalit
 iterator interface more complex. By comparison, the stream interface is quite simple and easy to
 use.
 
-The standard library already provides `Std.Stream` instances for productive pure iterators that
-support random access (`IteratorAccess`). This module adds the reverse translation: `Std.Stream.iter` converts a stream into a productive pure
-iterator. It also connects the finiteness properties of both interfaces:
+Streams are productive pure iterators that never skip. This module makes that identification
+precise: `Std.Stream.iter` converts a stream into such an iterator, whose steps are exactly the
+values returned by `Std.Stream.next?`. The lemmas `toList_iter`, `toArray_iter`, `length_iter`
+and the `step_iter_of_next?_eq_some`/`step_iter_of_next?_eq_none` lemmas transfer results between
+the two interfaces.
 
-- iterators of streams from a well-founded stream type are finite;
-- finite pure iterators form a well-founded stream type.
+Finiteness is the same notion on both sides: the successor relation of `Std.Stream.iter s` is the
+default next relation of `s`. Thus `Std.Stream.Finite s` for the default relation is
+accessibility of `Std.Stream.iter s`, and `Std.Stream.WellFounded σ α` corresponds to
+`Std.Iterators.Finite` for the stream iterator type. Core iterators only have the latter, type-wide
+notion, while `Std.Stream.Finite` is the per-stream notion. A custom `Std.Stream.HasNextRelation`
+may relate more streams than the default relation; finiteness for such a relation still implies
+finiteness of the iterator, but not conversely.
 
-This is also useful for existing stream-based libraries that want to gradually transition to
-iterators.
-
-Stream iterators also support `IteratorAccess`, so `Std.Stream.iter s` is itself a stream, and a
-well-founded one when `σ` is a well-founded stream type.
+In the other direction, the standard library provides `Std.Stream` instances for productive pure
+iterators that support random access (`IteratorAccess`); in the standard library, these are the
+range iterators. Finite iterators of this kind form a well-founded stream type. Stream iterators
+also support `IteratorAccess`, so `Std.Stream.iter s` is itself a stream, and a well-founded one
+when `σ` is a well-founded stream type.
 -/
 
 namespace Std.Iterators.Types
@@ -187,9 +194,10 @@ termination_by Finite.wrap s
 
 /-! ## Finiteness
 
-A stream is identified with its iterator, which is productive and never skips. Under this
-identification, the successor relation of iterators is the default next relation of streams, so
-finiteness is the same notion on both sides.
+The successor relation of `iter s` is the default next relation `∃ x, next? s = some (x, t)`, so
+finiteness is the same notion for a stream and its iterator. For a custom `HasNextRelation`,
+which may be larger than the default relation, finiteness only implies accessibility of the
+iterator (`Finite.acc_iter`).
 -/
 
 public theorem isPlausibleSuccessorOf_iter_iff [Stream σ α] {s t : σ} :
