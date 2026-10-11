@@ -200,28 +200,6 @@ public theorem foldlM_some [Monad m] [HasNextRelation σ α] {s t : σ} [Stream.
   · simp_all
   · next heq => rw [h] at heq; cases heq; rfl
 
-/-- Folds a monadic function over a finite stream from right to left. -/
-@[specialize]
-public def foldrM [Monad m] [HasNextRelation σ α] (s : σ) [Stream.Finite s]
-    (f : α → β → m β) (init : β) : m β :=
-  match h : next? s with
-  | none => pure init
-  | some (x, t) =>
-    have : Stream.Finite t := .ofSome h
-    foldrM t f init >>= f x
-termination_by wrap s
-
-public theorem foldrM_none [Monad m] [HasNextRelation σ α] {s : σ} [Stream.Finite s]
-    {f : α → β → m β} (h : next? s = none) : foldrM s f init = pure init := by
-  rw [foldrM]; split <;> simp_all
-
-public theorem foldrM_some [Monad m] [HasNextRelation σ α] {s t : σ} [Stream.Finite s]
-    [Stream.Finite t] {f : α → β → m β} (h : next? s = some (x, t)) :
-    foldrM s f init = foldrM t f init >>= f x := by
-  rw [foldrM]; split
-  · simp_all
-  · next heq => rw [h] at heq; cases heq; rfl
-
 /-- Folds a function over a finite stream from left to right. -/
 @[specialize]
 public def foldl [HasNextRelation σ α] (s : σ) [Stream.Finite s] (f : β → α → β)
@@ -240,27 +218,6 @@ public theorem foldl_none [HasNextRelation σ α] {s : σ} [Stream.Finite s] {f 
 public theorem foldl_some [HasNextRelation σ α] {s t : σ} [Stream.Finite s] [Stream.Finite t]
     {f : β → α → β} (h : next? s = some (x, t)) : foldl s f init = foldl t f (f init x) := by
   rw [foldl]; split
-  · simp_all
-  · next heq => rw [h] at heq; cases heq; rfl
-
-/-- Folds a function over a finite stream from right to left. -/
-@[specialize]
-public def foldr [HasNextRelation σ α] (s : σ) [Stream.Finite s] (f : α → β → β)
-    (init : β) : β :=
-  match h : next? s with
-  | none => init
-  | some (x, t) =>
-    have : Stream.Finite t := .ofSome h
-    f x <| foldr t f init
-termination_by wrap s
-
-public theorem foldr_none [HasNextRelation σ α] {s : σ} [Stream.Finite s] {f : α → β → β}
-    (h : next? s = none) : foldr s f init = init := by
-  rw [foldr]; split <;> simp_all
-
-public theorem foldr_some [HasNextRelation σ α] {s t : σ} [Stream.Finite s] [Stream.Finite t]
-    {f : α → β → β} (h : next? s = some (x, t)) : foldr s f init = f x (foldr t f init) := by
-  rw [foldr]; split
   · simp_all
   · next heq => rw [h] at heq; cases heq; rfl
 
@@ -351,6 +308,39 @@ public theorem toArray_some [HasNextRelation σ α] {s t : σ} [Stream.Finite s]
     have : Stream.Finite t := .ofSome h
     rw [toList_some h, toArray_some h, List.toArray_cons, toArray_toList]
 termination_by wrap s
+
+/-- Folds a monadic function over a finite stream from right to left.
+
+The values are first collected into an array, so this uses heap rather than stack space. -/
+@[inline]
+public def foldrM [Monad m] [HasNextRelation σ α] (s : σ) [Stream.Finite s]
+    (f : α → β → m β) (init : β) : m β :=
+  (toArray s).foldrM f init
+
+public theorem foldrM_none [Monad m] [HasNextRelation σ α] {s : σ} [Stream.Finite s]
+    {f : α → β → m β} (h : next? s = none) : foldrM s f init = pure init := by
+  simp [foldrM, toArray_none h]
+
+public theorem foldrM_some [Monad m] [LawfulMonad m] [HasNextRelation σ α] {s t : σ}
+    [Stream.Finite s] [Stream.Finite t] {f : α → β → m β} (h : next? s = some (x, t)) :
+    foldrM s f init = foldrM t f init >>= f x := by
+  simp [foldrM, toArray_some h]
+
+/-- Folds a function over a finite stream from right to left.
+
+The values are first collected into an array, so this uses heap rather than stack space. -/
+@[inline]
+public def foldr [HasNextRelation σ α] (s : σ) [Stream.Finite s] (f : α → β → β)
+    (init : β) : β :=
+  (toArray s).foldr f init
+
+public theorem foldr_none [HasNextRelation σ α] {s : σ} [Stream.Finite s] {f : α → β → β}
+    (h : next? s = none) : foldr s f init = init := by
+  simp [foldr, toArray_none h]
+
+public theorem foldr_some [HasNextRelation σ α] {s t : σ} [Stream.Finite s] [Stream.Finite t]
+    {f : α → β → β} (h : next? s = some (x, t)) : foldr s f init = f x (foldr t f init) := by
+  simp [foldr, toArray_some h]
 
 @[simp] public theorem toList_list (l : List α) : toList l = l := by
   induction l with
