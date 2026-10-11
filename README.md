@@ -37,12 +37,3 @@ rev = "main"
 
 The `main` branch tracks the Lean toolchain of Batteries `main`. The `nightly-testing` branch
 tracks Batteries `nightly-testing`.
-
-## Maintenance
-
-The GitHub workflows come from the [Batteries cell template][1]. They need a repository secret
-called `BATTERIES_CELL_TOKEN` holding a [fine-grained personal access token][2] with read and
-write access to contents, pull requests and workflows of this repository.
-
-[1]: https://github.com/leanprover-community/batteries-cell-template
-[2]: https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#creating-a-fine-grained-personal-access-token
