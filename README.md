@@ -37,3 +37,27 @@ rev = "main"
 
 The `main` branch tracks the Lean toolchain of Batteries `main`. The `nightly-testing` branch
 tracks Batteries `nightly-testing`.
+
+## Acknowledgements
+
+This cell grew out of several pull requests to Batteries (formerly Std):
+
+- [std4#127][1] by Mario Carneiro: well-founded stream class, with per-stream accessibility
+  (`StreamAcc`) and well-founded stream types.
+- [batteries#985][2] by François G. Dorais: `drop` and `take` for streams (merged).
+- [batteries#1079][3] by François G. Dorais: well-founded streams and folds.
+- [batteries#1331][4] and [batteries#1372][5] by François G. Dorais: finite and well-founded
+  streams.
+- [batteries#1334][6] by François G. Dorais: stream combinators.
+
+[1]: https://github.com/leanprover-community/batteries/pull/127
+[2]: https://github.com/leanprover-community/batteries/pull/985
+[3]: https://github.com/leanprover-community/batteries/pull/1079
+[4]: https://github.com/leanprover-community/batteries/pull/1331
+[5]: https://github.com/leanprover-community/batteries/pull/1372
+[6]: https://github.com/leanprover-community/batteries/pull/1334
+
+---
+
+Copyright (c) 2025 François G. Dorais. Released under the Apache 2.0 license, see
+[LICENSE](LICENSE).
