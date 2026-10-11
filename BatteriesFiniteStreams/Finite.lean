@@ -47,7 +47,7 @@ Several examples of this pattern can be found below. Note that `Stream.Finite s`
 there are no `Stream.Finite` instances.
 
 The total operations on finite streams live in the `Std.Stream.Finite` namespace: the folds
-`foldl`, `foldr`, `foldlM` and `foldrM`, as well as `length`, `toList`, `toListRev` and `toArray`.
+`foldl`, `foldr`, `foldlM` and `foldrM`, as well as `length`, `toList` and `toArray`.
 -/
 
 namespace Std.Stream
@@ -67,10 +67,6 @@ public instance (priority := low) defaultNextRelation (σ) [Stream σ α] :
 
 /-- Next relation for a stream. -/
 public abbrev Next [HasNextRelation σ α] : σ → σ → Prop := HasNextRelation.rel
-
-/-- Next relation, restricted to a subset of streams. -/
-public abbrev RestrictedNext [HasNextRelation σ α] (p : σ → Prop) (s t : σ) : Prop :=
-  p t ∧ Next s t
 
 public theorem next_of_next?_eq_some [HasNextRelation σ α] {s t : σ} :
     next? s = some (x, t) → Next t s := HasNextRelation.rel_of_next?_eq_some
@@ -176,20 +172,6 @@ public theorem ofNext [HasNextRelation σ α] {s t : σ} [Stream.Finite s] (h : 
 /-- The stream following a finite stream is finite. -/
 public theorem ofSome [HasNextRelation σ α] {s t : σ} [Stream.Finite s]
     (h : next? s = some (x, t)) : Stream.Finite t := .ofNext <| next_of_next?_eq_some h
-
-/-- Introduces a predicate `p` into an accessibility relation, provided that it holds of the
-initial point. -/
-private theorem acc_restriction (p : α → Prop) {r : α → α → Prop} {a : α}
-    (acc : Acc r a) (h : p a) : Acc (fun x y => p y → p x ∧ r x y) a := by
-  induction acc with
-  | intro x _ ih => exact ⟨_, fun y hr => ih y (hr h).2 (hr h).1⟩
-
-/-- Defines a finite stream instance for a restricted subset of streams. -/
-public theorem ofRestrictedNext.{u, v} [HasNextRelation.{u, v} σ α] {p : σ → Prop}
-    (H : ∀ {s t}, Next s t → p t → p s) (h : p s) (acc : Acc (RestrictedNext p) s) :
-    Stream.Finite s where
-  acc :=
-    Subrelation.accessible (fun h₁ h₂ => ⟨H h₁ h₂, h₂, h₁⟩) (acc_restriction p acc h)
 
 /-- Wraps a finite stream into a well-founded type for use in termination proofs. -/
 @[expose] public def wrap [HasNextRelation σ α] (s : σ) [Stream.Finite s] :
@@ -306,10 +288,10 @@ public theorem length_some [HasNextRelation σ α] {s t : σ} [Stream.Finite s] 
 
 /-- Sequence of values of a finite stream as a `List` in reverse order. -/
 @[inline]
-public def toListRev [HasNextRelation σ α] (s : σ) [Stream.Finite s] : List α :=
+private def toListRev [HasNextRelation σ α] (s : σ) [Stream.Finite s] : List α :=
   foldl s (fun r x => x :: r) []
 
-public theorem toListRev_none [HasNextRelation σ α] {s : σ} [Stream.Finite s]
+private theorem toListRev_none [HasNextRelation σ α] {s : σ} [Stream.Finite s]
     (h : next? s = none) : toListRev s = [] := foldl_none h
 
 private theorem foldl_cons [HasNextRelation σ α] {s : σ} [Stream.Finite s] :
@@ -322,7 +304,7 @@ private theorem foldl_cons [HasNextRelation σ α] {s : σ} [Stream.Finite s] :
     simp
 termination_by wrap s
 
-public theorem toListRev_some [HasNextRelation σ α] {s t : σ} [Stream.Finite s]
+private theorem toListRev_some [HasNextRelation σ α] {s t : σ} [Stream.Finite s]
     [Stream.Finite t] (h : next? s = some (x, t)) : toListRev s = toListRev t ++ [x] := by
   rw [toListRev, foldl_some h, foldl_cons]; rfl
 

@@ -25,9 +25,6 @@ def sumFor (l : List Nat) : Nat := Id.run do
 example : (Std.Stream.iter [1, 2, 3]).toList = [1, 2, 3] := by simp
 example : (Std.Stream.iter [1, 2, 3]).toArray = #[1, 2, 3] := by simp
 example : (Std.Stream.iter [1, 2, 3]).length = 3 := by simp
-example [Std.Stream.WellFounded σ α] (s : σ) :
-    (Std.Stream.iter s).toListRev = Std.Stream.Finite.toListRev s := by
-  simp
 example [Std.Stream σ α] {s t : σ} (h : Std.Stream.next? s = some (x, t)) :
     (Std.Stream.iter s).step.val = .yield (Std.Stream.iter t) x := by
   simp [Std.Stream.step_iter_of_next?_eq_some h]
