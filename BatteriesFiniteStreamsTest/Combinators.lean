@@ -21,6 +21,8 @@ instance : Std.Stream Nats Nat where
 
 -- Concat
 #guard toList (concat [1,2,3] [4,5]) == [1,2,3,4,5]
+#guard toList (concat (join ([[], []] : List (List Nat))) [4,5]) == [4,5]
+#guard toList (concat ([] : List Nat) (concat [1] [2])) == [1,2]
 
 -- Join
 #guard toList (join [[1,2],[3,4,5],[6]]) == [1,2,3,4,5,6]
