@@ -42,28 +42,20 @@ tracks Batteries `nightly-testing`.
 
 This cell grew out of several pull requests to Batteries (formerly Std):
 
-- [std4#127][3] by Mario Carneiro: well-founded stream class, with per-stream accessibility
+- [std4#127][1] by Mario Carneiro: well-founded stream class, with per-stream accessibility
   (`StreamAcc`) and well-founded stream types.
-- [batteries#985][4] by François G. Dorais: `drop` and `take` for streams (merged).
-- [batteries#1079][5] by François G. Dorais: well-founded streams and folds.
-- [batteries#1331][6] and [batteries#1372][7] by François G. Dorais: finite and well-founded
+- [batteries#985][2] by François G. Dorais: `drop` and `take` for streams (merged).
+- [batteries#1079][3] by François G. Dorais: well-founded streams and folds.
+- [batteries#1331][4] and [batteries#1372][5] by François G. Dorais: finite and well-founded
   streams.
-- [batteries#1334][8] by François G. Dorais: stream combinators.
+- [batteries#1334][6] by François G. Dorais: stream combinators.
 
-## Maintenance
-
-The GitHub workflows come from the [Batteries cell template][1]. They need a repository secret
-called `BATTERIES_CELL_TOKEN` holding a [fine-grained personal access token][2] with read and
-write access to contents, pull requests and workflows of this repository.
-
-[1]: https://github.com/leanprover-community/batteries-cell-template
-[2]: https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#creating-a-fine-grained-personal-access-token
-[3]: https://github.com/leanprover-community/batteries/pull/127
-[4]: https://github.com/leanprover-community/batteries/pull/985
-[5]: https://github.com/leanprover-community/batteries/pull/1079
-[6]: https://github.com/leanprover-community/batteries/pull/1331
-[7]: https://github.com/leanprover-community/batteries/pull/1372
-[8]: https://github.com/leanprover-community/batteries/pull/1334
+[1]: https://github.com/leanprover-community/batteries/pull/127
+[2]: https://github.com/leanprover-community/batteries/pull/985
+[3]: https://github.com/leanprover-community/batteries/pull/1079
+[4]: https://github.com/leanprover-community/batteries/pull/1331
+[5]: https://github.com/leanprover-community/batteries/pull/1372
+[6]: https://github.com/leanprover-community/batteries/pull/1334
 
 ---
 
