@@ -170,15 +170,6 @@ public instance [Iterator α Id β] [Iterators.Finite α Id] [IteratorAccess α 
     simp only [step_iter_of_next?_eq_some h, toList_iter t, Finite.toList_some h]
 termination_by Finite.wrap s
 
-@[simp] public theorem toListRev_iter [Stream.WellFounded σ α] (s : σ) :
-    (iter s).toListRev = Finite.toListRev s := by
-  rw [Iter.toListRev_eq_match_step]
-  match h : next? s with
-  | none => simp [step_iter_of_next?_eq_none h, Finite.toListRev_none h]
-  | some (x, t) =>
-    simp only [step_iter_of_next?_eq_some h, toListRev_iter t, Finite.toListRev_some h]
-termination_by Finite.wrap s
-
 @[simp] public theorem toArray_iter [Stream.WellFounded σ α] (s : σ) :
     (iter s).toArray = Finite.toArray s := by
   rw [← Iter.toArray_toList, toList_iter, Finite.toArray_toList]
